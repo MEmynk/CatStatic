@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pathan Steel — Admin Panel</title>
 <meta name="robots" content="noindex, nofollow" />
-<link rel="icon" href="images/logo.png" />
+<link rel="icon" href="images/logo.svg" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
 :root{
@@ -58,6 +58,16 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
 .topbar__actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pill{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--line);color:var(--steel)}
 .pill.is-dirty{border-color:var(--gold-d);color:var(--gold-b)}
+.pill--ok{border-color:rgba(79,180,119,.5);color:var(--green)}
+.pill--bad{border-color:var(--red);color:#fff;background:var(--red);font-weight:500;
+  animation:pulseBad 1.1s ease-in-out infinite}
+@keyframes pulseBad{50%{opacity:.55}}
+
+.storewarn{display:none;gap:6px;flex-direction:column;padding:16px 26px;
+  background:rgba(224,82,82,.12);border-block:1px solid var(--red);color:#ffd9d9;font-size:.88rem}
+.storewarn.is-on{display:flex}
+.storewarn b{color:#fff}
+.storewarn code{color:var(--gold-b);background:#0a0b0d;padding:1px 6px}
 
 .tabs{display:flex;gap:2px;padding:0 26px;border-bottom:1px solid var(--line);background:var(--ink);overflow-x:auto}
 .tab{padding:16px 22px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);border-bottom:2px solid transparent;white-space:nowrap;transition:all .3s}
@@ -81,6 +91,9 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
 /* ---------- DROPZONE ---------- */
 .drop{border:1px dashed var(--line);padding:30px 20px;text-align:center;cursor:pointer;transition:all .35s var(--ease)}
 .drop:hover,.drop.is-over{border-color:var(--gold);background:rgba(201,164,92,.06)}
+.drop--spin b::before{content:"◍ ";color:var(--gold)}
+.tag360{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;margin-left:8px;
+  font-size:.58rem;letter-spacing:.12em;border:1px solid var(--gold-d);color:var(--gold-b)}
 .drop b{display:block;color:var(--white);font-weight:400;font-size:.95rem;margin-bottom:4px}
 .drop small{color:var(--steel);font-size:.76rem}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:14px}
@@ -130,7 +143,7 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
 <!-- ============ LOGIN ============ -->
 <div class="login" id="login">
   <div class="login__box">
-    <img src="images/logo.png" alt="" />
+    <img src="images/logo.svg" alt="" />
     <h1>Admin Panel</h1>
     <p>Pathan Steel</p>
     <input type="password" id="pass" placeholder="Enter passcode" autofocus />
@@ -143,16 +156,19 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
 <div class="app" id="app">
   <div class="topbar">
     <div class="topbar__brand">
-      <img src="images/logo.png" alt="" />
+      <img src="images/logo.svg" alt="" />
       <div><strong>Pathan Steel</strong><span>Admin Panel</span></div>
     </div>
     <div class="topbar__actions">
-      <span class="pill" id="dirtyPill">Saved</span>
+      <span class="pill pill--ok" id="savePill">Data safe</span>
+      <span class="pill" id="dirtyPill">Published</span>
       <a class="btn btn--sm" href="index.html" target="_blank">View Site ↗</a>
       <button class="btn btn--sm btn--gold" id="exportTop">Download products.js</button>
       <button class="btn btn--sm" id="logout">Lock</button>
     </div>
   </div>
+
+  <div class="storewarn" id="storeWarn"></div>
 
   <nav class="tabs">
     <button class="tab is-active" data-tab="products">Products</button>
@@ -193,6 +209,21 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
               <input type="file" id="file" accept="image/*" multiple hidden />
             </div>
             <div class="thumbs" id="thumbs"></div>
+          </div>
+
+          <div class="field">
+            <label>360° View Photos <span style="color:var(--steel);letter-spacing:0;text-transform:none">(optional)</span></label>
+            <div class="drop drop--spin" id="dropSpin">
+              <b>360° ghumti hui photos yahan daalo</b>
+              <small>product ke charo taraf se 16–36 photos — sahi order me select karein</small>
+              <input type="file" id="fileSpin" accept="image/*" multiple hidden />
+            </div>
+            <div class="thumbs" id="thumbsSpin"></div>
+            <p class="note">
+              Product ko table par rakh kar har baar thoda-thoda ghumate hue photos kheenchein
+              (camera ek jagah sthir rahe). Jitni zyada photos, utna smooth ghumega.
+              <b>24 photos</b> best rehti hain. File names order me hone chahiye (1,2,3…).
+            </p>
           </div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -275,6 +306,24 @@ label{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:upperca
           <button class="btn btn--gold" id="exportBtn" style="width:100%">⬇ Download products.js</button>
 
           <div class="meter" id="meter"></div>
+        </div>
+
+        <div class="card" style="margin-top:22px">
+          <h2>Purana Data Wapas Laayein</h2>
+          <p class="hint">
+            Koi bhi <code>products.js</code> file yahan se load kar sakte ho — uske sare products,
+            photos aur categories panel me wapas aa jayenge. Naya computer ho, ya galti se data
+            chala gaya ho, to yahi se recover karo.
+          </p>
+          <div class="drop" id="dropImport">
+            <b>products.js file yahan daalo</b>
+            <small>ya click karke select karo</small>
+            <input type="file" id="fileImport" accept=".js,text/javascript" hidden />
+          </div>
+          <p class="note">
+            <b>Dhyan rakhein:</b> import karte hi panel ka abhi ka data us file wale data se
+            replace ho jayega. Isliye pehle current data download kar lein.
+          </p>
 
           <p class="note">
             <b>Backup tip:</b> download ki hui <code>products.js</code> file hi aapka poora data hai —
@@ -313,38 +362,146 @@ var $  = function(id){ return document.getElementById(id); };
 var state = { categories: [], products: [], company: {} };
 var editIndex = null;
 var draftImages = [];
+var draftSpin = [];
 var dirty = false;
+var booting = false;
+var busyCount = 0;   // kitni images abhi compress ho rahi hain
 
-/* ---------- storage ---------- */
+/* ============================================================
+   STORAGE — IndexedDB
+   localStorage ki limit sirf ~5MB thi, isliye photos add karte hi
+   save chupchap fail ho jata tha aur data gum ho jata tha.
+   IndexedDB me sau MB tak aaram se aata hai.
+   ============================================================ */
+var DB_NAME = "pathansteel_admin", DB_STORE = "state", DB_KEY = "main";
+
+function idb(){
+  return new Promise(function(res, rej){
+    if (!window.indexedDB) return rej(new Error("no indexeddb"));
+    var r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = function(){
+      if (!r.result.objectStoreNames.contains(DB_STORE)) r.result.createObjectStore(DB_STORE);
+    };
+    r.onsuccess = function(){ res(r.result); };
+    r.onerror   = function(){ rej(r.error); };
+  });
+}
+function idbGet(){
+  return idb().then(function(db){
+    return new Promise(function(res, rej){
+      var tx = db.transaction(DB_STORE, "readonly").objectStore(DB_STORE).get(DB_KEY);
+      tx.onsuccess = function(){ res(tx.result || null); };
+      tx.onerror   = function(){ rej(tx.error); };
+    });
+  });
+}
+function idbPut(val){
+  return idb().then(function(db){
+    return new Promise(function(res, rej){
+      var t = db.transaction(DB_STORE, "readwrite");
+      t.objectStore(DB_STORE).put(val, DB_KEY);
+      t.oncomplete = function(){ res(true); };
+      t.onerror = t.onabort = function(){ rej(t.error || new Error("write failed")); };
+    });
+  });
+}
+
 function seedFromFile(){
   state.categories = (typeof CATEGORIES !== "undefined" && Array.isArray(CATEGORIES)) ? CATEGORIES.slice() : [];
   state.products   = (typeof PRODUCTS   !== "undefined" && Array.isArray(PRODUCTS))   ? JSON.parse(JSON.stringify(PRODUCTS)) : [];
   state.company    = (typeof COMPANY    !== "undefined" && COMPANY) ? JSON.parse(JSON.stringify(COMPANY)) : { phone:"", whatsapp:"", address:"" };
 }
-function load(){
-  var raw = null;
-  try { raw = localStorage.getItem(LS); } catch(e){}
-  if (raw) {
-    try {
-      var d = JSON.parse(raw);
-      state.categories = d.categories || [];
-      state.products   = d.products || [];
-      state.company    = d.company || {};
-      dirty = !!d.dirty;
-      return;
-    } catch(e){}
-  }
-  seedFromFile();
+
+function applyData(d){
+  state.categories = d.categories || [];
+  state.products   = d.products || [];
+  state.company    = d.company || {};
+  dirty = !!d.dirty;
 }
+
+// async load: IndexedDB -> purana localStorage (migrate) -> products.js
+function load(){
+  return idbGet()
+    .then(function(d){
+      if (d && (d.products || d.categories)) { applyData(d); return "idb"; }
+      var raw = null;
+      try { raw = localStorage.getItem(LS); } catch(e){}
+      if (raw) {
+        try {
+          applyData(JSON.parse(raw));
+          return idbPut(snapshot()).then(function(){ return "migrated"; });
+        } catch(e){}
+      }
+      seedFromFile();
+      return "file";
+    })
+    .catch(function(){
+      var raw = null;
+      try { raw = localStorage.getItem(LS); } catch(e){}
+      if (raw) { try { applyData(JSON.parse(raw)); return "ls"; } catch(e){} }
+      seedFromFile();
+      return "file";
+    });
+}
+
+function snapshot(){
+  return {
+    categories: state.categories,
+    products: state.products,
+    company: state.company,
+    dirty: dirty,
+    savedAt: Date.now()
+  };
+}
+
+var saveQueued = false, saving = false;
 function save(){
   dirty = true;
-  try { localStorage.setItem(LS, JSON.stringify({ categories:state.categories, products:state.products, company:state.company, dirty:true })); }
-  catch(e){ toast("⚠ Browser storage full — please download products.js now."); }
   paintDirty();
+  if (saving) { saveQueued = true; return; }
+  saving = true;
+  setStoreStatus("saving");
+  idbPut(snapshot())
+    .then(function(){
+      setStoreStatus("ok");
+    })
+    .catch(function(err){
+      // last resort: localStorage (chhote data ke liye)
+      try {
+        localStorage.setItem(LS, JSON.stringify(snapshot()));
+        setStoreStatus("ok");
+      } catch(e){
+        setStoreStatus("fail", err && err.name === "QuotaExceededError");
+      }
+    })
+    .then(function(){
+      saving = false;
+      if (saveQueued) { saveQueued = false; save(); }
+    });
 }
+
+function setStoreStatus(kind, quota){
+  var bar = $("storeWarn");
+  var pill = $("savePill");
+  if (kind === "saving") { pill.textContent = "Saving…"; pill.className = "pill"; return; }
+  if (kind === "ok") {
+    pill.textContent = "Data safe";
+    pill.className = "pill pill--ok";
+    bar.classList.remove("is-on");
+    return;
+  }
+  pill.textContent = "SAVE FAILED";
+  pill.className = "pill pill--bad";
+  bar.innerHTML =
+    "<b>⚠ Data browser me save nahi ho paya" + (quota ? " (storage bhar gaya)" : "") + "</b>" +
+    "<span>Abhi <b>Publish → Download products.js</b> dabao, warna ye changes reload par chale jayenge. " +
+    "Download ke baad us file ko <code>js</code> folder me daal do.</span>";
+  bar.classList.add("is-on");
+}
+
 function paintDirty(){
   var p = $("dirtyPill");
-  p.textContent = dirty ? "Not published" : "Saved";
+  p.textContent = dirty ? "Not published" : "Published";
   p.classList.toggle("is-dirty", dirty);
 }
 
@@ -369,7 +526,10 @@ function unlock(){
     $("login").style.display = "none";
     $("app").classList.add("is-on");
     try { sessionStorage.setItem("ps_admin_ok","1"); } catch(e){}
-    renderAll();
+    if (booting) {
+      // data abhi load ho raha hai — thoda ruk kar render karo
+      var t = setInterval(function(){ if (!booting) { clearInterval(t); renderAll(); } }, 80);
+    } else renderAll();
   } else {
     $("loginErr").textContent = "Galat passcode.";
     $("pass").value = "";
@@ -398,15 +558,19 @@ document.querySelectorAll(".tab").forEach(function(t){
    IMAGES — compress in browser, store as data URL
    ============================================================ */
 var MAX_DIM = 1500, QUALITY = 0.82;
+// 360 frames bahut saari hoti hain — inhe chhota rakhte hain
+var SPIN_DIM = 1000, SPIN_QUALITY = 0.72;
 
-function compress(file){
+function compress(file, isSpin){
+  var dim = isSpin ? SPIN_DIM : MAX_DIM;
+  var q = isSpin ? SPIN_QUALITY : QUALITY;
   return new Promise(function(resolve, reject){
     var fr = new FileReader();
     fr.onload = function(){
       var img = new Image();
       img.onload = function(){
         var w = img.naturalWidth, h = img.naturalHeight;
-        var scale = Math.min(1, MAX_DIM / Math.max(w, h));
+        var scale = Math.min(1, dim / Math.max(w, h));
         w = Math.round(w * scale); h = Math.round(h * scale);
         var c = document.createElement("canvas");
         c.width = w; c.height = h;
@@ -414,7 +578,7 @@ function compress(file){
         ctx.fillStyle = "#0d0e10";
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL("image/jpeg", QUALITY));
+        resolve(c.toDataURL("image/jpeg", q));
       };
       img.onerror = function(){ reject(new Error("bad image")); };
       img.src = fr.result;
@@ -424,58 +588,94 @@ function compress(file){
   });
 }
 
-function addFiles(list){
+function setBusy(n){
+  busyCount = Math.max(0, n);
+  var btn = $("saveProduct");
+  if (busyCount > 0) {
+    btn.disabled = true;
+    btn.dataset.label = btn.dataset.label || btn.textContent;
+    btn.textContent = "Photos ready ho rahi hain… (" + busyCount + " baaki)";
+  } else {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.label || (editIndex === null ? "Save Product" : "Update Product");
+    delete btn.dataset.label;
+  }
+}
+
+function addFiles(list, isSpin){
   var files = Array.prototype.slice.call(list).filter(function(f){ return f.type.indexOf("image/") === 0; });
   if (!files.length) return;
-  toast("Processing " + files.length + " image(s)...");
+  // file name ke hisaab se sort — 360 frames sahi order me aayein
+  files.sort(function(a, b){
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+  });
+  var done = 0, total = files.length;
+  setBusy(busyCount + total);
+  toast("Processing " + total + " image(s)...");
   var chain = Promise.resolve();
   files.forEach(function(f){
     chain = chain.then(function(){
-      return compress(f).then(function(url){
-        draftImages.push(url);
-        renderThumbs();
-      }).catch(function(){});
+      return compress(f, isSpin).then(function(url){
+        // NOTE: array yahan naam se access karte hain (reference capture nahi),
+        // taaki beech me form reset/edit ho to photos galat jagah na jayein
+        (isSpin ? draftSpin : draftImages).push(url);
+        done++;
+        setBusy(busyCount - 1);
+        if (isSpin) { if (done % 4 === 0 || done === total) renderSpinThumbs(); }
+        else renderThumbs();
+        if (isSpin && done % 6 === 0) toast("360°: " + done + "/" + total + " ready...");
+      }).catch(function(){ done++; setBusy(busyCount - 1); });
     });
   });
-  chain.then(function(){ toast("✓ " + files.length + " image(s) added"); });
+  chain.then(function(){
+    if (isSpin) renderSpinThumbs(); else renderThumbs();
+    toast("✓ " + total + (isSpin ? " frame(s) added" : " image(s) added") + " — ab Save Product dabayein");
+  });
 }
 
-var drop = $("drop"), fileInput = $("file");
-drop.addEventListener("click", function(){ fileInput.click(); });
-fileInput.addEventListener("change", function(e){ addFiles(e.target.files); fileInput.value = ""; });
-["dragenter","dragover"].forEach(function(ev){
-  drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("is-over"); });
-});
-["dragleave","drop"].forEach(function(ev){
-  drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("is-over"); });
-});
-drop.addEventListener("drop", function(e){ addFiles(e.dataTransfer.files); });
+function wireDrop(dropId, inputId, isSpin){
+  var d = $(dropId), f = $(inputId);
+  d.addEventListener("click", function(){ f.click(); });
+  f.addEventListener("change", function(e){ addFiles(e.target.files, isSpin); f.value = ""; });
+  ["dragenter","dragover"].forEach(function(ev){
+    d.addEventListener(ev, function(e){ e.preventDefault(); d.classList.add("is-over"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    d.addEventListener(ev, function(e){ e.preventDefault(); d.classList.remove("is-over"); });
+  });
+  d.addEventListener("drop", function(e){ addFiles(e.dataTransfer.files, isSpin); });
+}
+wireDrop("drop", "file", false);
+wireDrop("dropSpin", "fileSpin", true);
 
-function renderThumbs(){
-  $("thumbs").innerHTML = draftImages.map(function(src, i){
+function paintThumbs(boxId, arr, redraw, showCover){
+  $(boxId).innerHTML = arr.map(function(src, i){
     return '<div class="thumb">' +
-      (i === 0 ? '<span class="thumb__cover">Cover</span>' : "") +
+      (showCover && i === 0 ? '<span class="thumb__cover">Cover</span>' : "") +
+      (!showCover ? '<span class="thumb__cover">' + (i + 1) + "</span>" : "") +
       '<img src="' + src + '" alt="" />' +
       '<div class="thumb__tools">' +
         '<button data-mv="' + i + '" title="Move left">‹</button>' +
         '<button class="x" data-del="' + i + '" title="Remove">✕</button>' +
       "</div></div>";
   }).join("");
-  $("thumbs").querySelectorAll("[data-del]").forEach(function(b){
+  $(boxId).querySelectorAll("[data-del]").forEach(function(b){
     b.addEventListener("click", function(){
-      draftImages.splice(parseInt(b.dataset.del, 10), 1);
-      renderThumbs();
+      arr.splice(parseInt(b.dataset.del, 10), 1);
+      redraw();
     });
   });
-  $("thumbs").querySelectorAll("[data-mv]").forEach(function(b){
+  $(boxId).querySelectorAll("[data-mv]").forEach(function(b){
     b.addEventListener("click", function(){
       var i = parseInt(b.dataset.mv, 10);
       if (i === 0) return;
-      var t = draftImages[i - 1]; draftImages[i - 1] = draftImages[i]; draftImages[i] = t;
-      renderThumbs();
+      var t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t;
+      redraw();
     });
   });
 }
+function renderThumbs(){ paintThumbs("thumbs", draftImages, renderThumbs, true); }
+function renderSpinThumbs(){ paintThumbs("thumbsSpin", draftSpin, renderSpinThumbs, false); }
 
 /* ============================================================
    CATEGORIES
@@ -554,9 +754,11 @@ function renderProducts(){
       (imgs[0] ? '<img class="row__img" src="' + esc(imgs[0]) + '" alt="" />' : '<div class="row__img"></div>') +
       '<div class="row__body">' +
         '<div class="row__meta"><em>' + esc(p.category || "—") + "</em></div>" +
-        '<div class="row__title">' + esc(p.name) + "</div>" +
+        '<div class="row__title">' + esc(p.name) +
+          (p.spin && p.spin.length > 1 ? '<span class="tag360">◍ 360°</span>' : "") + "</div>" +
         (p.description ? '<div class="row__desc">' + esc(p.description) + "</div>" : "") +
-        '<div class="row__meta">' + imgs.length + " image(s)</div>" +
+        '<div class="row__meta">' + imgs.length + " image(s)" +
+          (p.spin && p.spin.length > 1 ? " · " + p.spin.length + " spin frames" : "") + "</div>" +
       "</div>" +
       '<div class="row__acts">' +
         '<button class="btn btn--sm" data-edit="' + i + '">Edit</button>' +
@@ -590,7 +792,9 @@ function startEdit(i){
   }
   $("pCat").value = p.category || "";
   draftImages = (p.images || []).slice();
+  draftSpin = (p.spin || []).slice();
   renderThumbs();
+  renderSpinThumbs();
   $("saveProduct").textContent = "Update Product";
   $("cancelEdit").style.display = "";
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -602,13 +806,16 @@ function resetForm(){
   $("pName").value = "";
   $("pDesc").value = "";
   draftImages = [];
+  draftSpin = [];
   renderThumbs();
+  renderSpinThumbs();
   $("saveProduct").textContent = "Save Product";
   $("cancelEdit").style.display = "none";
 }
 $("cancelEdit").addEventListener("click", resetForm);
 
 $("saveProduct").addEventListener("click", function(){
+  if (busyCount > 0) { toast("Ruko — abhi " + busyCount + " photo(s) process ho rahi hain."); return; }
   var name = $("pName").value.trim();
   var cat  = $("pCat").value;
   var desc = $("pDesc").value.trim();
@@ -617,6 +824,8 @@ $("saveProduct").addEventListener("click", function(){
   if (!draftImages.length) { toast("Kam se kam ek image add karein."); return; }
 
   var obj = { name:name, category:cat, description:desc, images:draftImages.slice() };
+  if (draftSpin.length > 1) obj.spin = draftSpin.slice();
+  else if (draftSpin.length === 1) toast("360° ke liye kam se kam 2 photos chahiye — ignore kar diya.");
   if (editIndex === null) state.products.unshift(obj);
   else state.products[editIndex] = obj;
 
@@ -661,8 +870,11 @@ function buildFile(){
     s += "    name: " + j(p.name) + ",\n";
     s += "    category: " + j(p.category) + ",\n";
     s += "    description: " + j(p.description || "") + ",\n";
-    s += "    images: [\n" + (p.images || []).map(function(u){ return "      " + j(u); }).join(",\n") + "\n    ]\n";
-    s += "  }";
+    s += "    images: [\n" + (p.images || []).map(function(u){ return "      " + j(u); }).join(",\n") + "\n    ]";
+    if (p.spin && p.spin.length > 1) {
+      s += ",\n    spin: [\n" + p.spin.map(function(u){ return "      " + j(u); }).join(",\n") + "\n    ]";
+    }
+    s += "\n  }";
     return s;
   }).join(",\n");
   out += "\n];\n";
@@ -676,11 +888,13 @@ function fmtSize(b){
 function updateMeter(){
   var size = new Blob([buildFile()]).size;
   var imgs = state.products.reduce(function(n, p){ return n + (p.images ? p.images.length : 0); }, 0);
+  var spins = state.products.reduce(function(n, p){ return n + (p.spin ? p.spin.length : 0); }, 0);
   var cls = size > 25e6 ? "danger" : (size > 12e6 ? "warn" : "");
   var msg = size > 25e6 ? " — bohot bada ho gaya, purane products hata dein"
           : (size > 12e6 ? " — thoda bada hai, site slow khul sakti hai" : " — bilkul theek");
   $("meter").innerHTML = "<b>" + state.products.length + "</b> products · <b>" + imgs +
-    "</b> images · file size <b class='" + cls + "'>" + fmtSize(size) + "</b>" +
+    "</b> images" + (spins ? " · <b>" + spins + "</b> 360° frames" : "") +
+    " · file size <b class='" + cls + "'>" + fmtSize(size) + "</b>" +
     "<span class='" + cls + "'>" + msg + "</span>";
 }
 
@@ -694,16 +908,62 @@ function doExport(){
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
 
   dirty = false;
-  try {
-    var d = JSON.parse(localStorage.getItem(LS) || "{}");
-    d.dirty = false;
-    localStorage.setItem(LS, JSON.stringify(d));
-  } catch(e){}
   paintDirty();
+  idbPut(snapshot()).catch(function(){});
   toast("✓ Downloaded — ab is file ko js folder me replace kar dein");
 }
 $("exportBtn").addEventListener("click", doExport);
 $("exportTop").addEventListener("click", doExport);
+
+/* ---------- Import products.js (recovery) ---------- */
+function importText(txt){
+  var data;
+  try {
+    // file me sirf COMPANY / CATEGORIES / PRODUCTS hote hain
+    data = new Function(
+      txt + "\n;return {" +
+      "COMPANY: typeof COMPANY!=='undefined'?COMPANY:null," +
+      "CATEGORIES: typeof CATEGORIES!=='undefined'?CATEGORIES:null," +
+      "PRODUCTS: typeof PRODUCTS!=='undefined'?PRODUCTS:null};"
+    )();
+  } catch(e){
+    toast("⚠ Ye file padhi nahi ja saki — sahi products.js file chunein.");
+    return;
+  }
+  if (!data || !Array.isArray(data.PRODUCTS)) {
+    toast("⚠ Is file me products nahi mile.");
+    return;
+  }
+  if (!confirm("Is file se " + data.PRODUCTS.length + " products load karein?\n\nPanel ka abhi ka data replace ho jayega.")) return;
+  state.products   = JSON.parse(JSON.stringify(data.PRODUCTS));
+  state.categories = Array.isArray(data.CATEGORIES) ? data.CATEGORIES.slice() : [];
+  state.company    = data.COMPANY ? JSON.parse(JSON.stringify(data.COMPANY)) : {};
+  resetForm();
+  save();
+  renderAll();
+  toast("✓ " + state.products.length + " products load ho gaye");
+}
+
+(function(){
+  var d = $("dropImport"), f = $("fileImport");
+  if (!d || !f) return;
+  function read(file){
+    if (!file) return;
+    var fr = new FileReader();
+    fr.onload = function(){ importText(String(fr.result)); };
+    fr.onerror = function(){ toast("⚠ File read nahi hui."); };
+    fr.readAsText(file);
+  }
+  d.addEventListener("click", function(){ f.click(); });
+  f.addEventListener("change", function(e){ read(e.target.files[0]); f.value = ""; });
+  ["dragenter","dragover"].forEach(function(ev){
+    d.addEventListener(ev, function(e){ e.preventDefault(); d.classList.add("is-over"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    d.addEventListener(ev, function(e){ e.preventDefault(); d.classList.remove("is-over"); });
+  });
+  d.addEventListener("drop", function(e){ read(e.dataTransfer.files[0]); });
+})();
 
 /* ---------- boot ---------- */
 function renderAll(){
@@ -714,14 +974,20 @@ function renderAll(){
   paintDirty();
 }
 
-load();
-try {
-  if (sessionStorage.getItem("ps_admin_ok") === "1") {
-    $("login").style.display = "none";
-    $("app").classList.add("is-on");
-    renderAll();
-  }
-} catch(e){}
+var unlockedEarly = false;
+try { unlockedEarly = sessionStorage.getItem("ps_admin_ok") === "1"; } catch(e){}
+if (unlockedEarly) { $("login").style.display = "none"; $("app").classList.add("is-on"); }
+
+booting = true;
+load().then(function(src){
+  booting = false;
+  if ($("app").classList.contains("is-on")) renderAll();
+  if (src === "migrated") toast("✓ Purana data naye (bade) storage me move ho gaya");
+}).catch(function(){
+  booting = false;
+  seedFromFile();
+  if ($("app").classList.contains("is-on")) renderAll();
+});
 
 window.addEventListener("beforeunload", function(e){
   if (dirty) { e.preventDefault(); e.returnValue = ""; }
